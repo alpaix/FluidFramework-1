@@ -74,6 +74,7 @@ export class R11sDocumentDeltaConnection extends DocumentDeltaConnection impleme
                     documentId: id,
                     tenantId,
                 },
+                path:"/api/proxy/collab/socket.io",
                 reconnection: false,
                 transports: ["websocket"],
                 timeout: timeoutMs,
