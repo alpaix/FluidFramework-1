@@ -66,7 +66,7 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
             id,
         );
         await Axios.post(
-            `${resolvedUrl.endpoints.ordererUrl}/documents/${tenantId}`,
+            `${resolvedUrl.endpoints.ordererUrl}/api/proxy/collab/documents/${tenantId}`,
             {
                 id,
                 summary: appSummary,
