@@ -12,7 +12,7 @@ import {
 } from "@fluidframework/driver-definitions";
 import { ITelemetryBaseLogger } from "@fluidframework/common-definitions";
 import { IErrorTrackingService, ISummaryTree } from "@fluidframework/protocol-definitions";
-import { ICredentials, IGitCache } from "@fluidframework/server-services-client";
+import { ICredentials, IGitCache, ICustomHeadersProvider } from "@fluidframework/server-services-client";
 import {
     ensureFluidResolvedUrl,
     getDocAttributesFromProtocolSummary,
@@ -33,6 +33,7 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
     public readonly protocolName = "fluid:";
     constructor(
         private readonly tokenProvider: ITokenProvider,
+        private readonly headersProvider: ICustomHeadersProvider,
         private readonly useDocumentService2: boolean = false,
         private readonly errorTracking: IErrorTrackingService = new DefaultErrorTracking(),
         private readonly disableCache: boolean = false,
@@ -65,6 +66,7 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
             tenantId,
             id,
         );
+        const headers =  await this.headersProvider.fetchCustomHeaders();
         await Axios.post(
             `${resolvedUrl.endpoints.ordererUrl}/api/proxy/collab/documents/${tenantId}`,
             {
@@ -77,7 +79,8 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
                 headers: {
                     Authorization: `Basic ${token.jwt}`,
                 },
-            });
+            },
+            {headers:headers});
         return this.createDocumentService(resolvedUrl, logger);
     }
 
@@ -123,6 +126,7 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
                 this.credentials,
                 logger2,
                 this.tokenProvider,
+                this.headersProvider,
                 tenantId,
                 documentId);
         } else {
@@ -138,6 +142,7 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
                 this.gitCache,
                 logger2,
                 this.tokenProvider,
+                this.headersProvider,
                 tenantId,
                 documentId);
         }

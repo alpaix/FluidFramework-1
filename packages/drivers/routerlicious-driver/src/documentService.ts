@@ -6,7 +6,8 @@
 import assert from "assert";
 import * as api from "@fluidframework/driver-definitions";
 import { IClient, IErrorTrackingService } from "@fluidframework/protocol-definitions";
-import { GitManager, Historian, ICredentials, IGitCache } from "@fluidframework/server-services-client";
+import { GitManager, Historian, ICredentials, IGitCache, ICustomHeadersProvider } from "@fluidframework/server-services-client";
+import Axios from "axios";
 import io from "socket.io-client";
 import { ITelemetryLogger } from "@fluidframework/common-definitions";
 import { DeltaStorageService, DocumentDeltaStorageService } from "./deltaStorageService";
@@ -32,6 +33,7 @@ export class DocumentService implements api.IDocumentService {
         private readonly gitCache: IGitCache | undefined,
         private readonly logger: ITelemetryLogger | undefined,
         protected tokenProvider: ITokenProvider,
+        protected headersProvider:ICustomHeadersProvider,
         protected tenantId: string,
         protected documentId: string,
     ) {
@@ -65,10 +67,12 @@ export class DocumentService implements api.IDocumentService {
             };
         }
 
+        const customHeaders = await this.headersProvider.fetchCustomHeaders()
         const historian = new Historian(
             this.gitUrl,
             this.historianApi,
             this.disableCache,
+            customHeaders.headers,
             credentials);
         const gitManager = new GitManager(historian);
 
@@ -103,9 +107,8 @@ export class DocumentService implements api.IDocumentService {
     public async connectToDeltaStorage(): Promise<api.IDocumentDeltaStorageService> {
         assert(this.documentStorageService, "Storage service not initialized");
 
-        const deltaStorage = new DeltaStorageService(this.deltaStorageUrl, this.tokenProvider, this.logger);
-        return new DocumentDeltaStorageService(this.tenantId, this.documentId,
-            deltaStorage, this.documentStorageService);
+        const deltaStorage = new DeltaStorageService(this.deltaStorageUrl, this.tokenProvider,this.headersProvider, this.logger);
+        return new DocumentDeltaStorageService(this.tenantId, this.documentId, deltaStorage, this.documentStorageService);
     }
 
     /**
@@ -124,7 +127,8 @@ export class DocumentService implements api.IDocumentService {
             ordererToken.jwt,
             io,
             client,
-            this.ordererUrl);
+            this.ordererUrl,
+            customHeaders.headers);
     }
 
     public getErrorTrackingService() {

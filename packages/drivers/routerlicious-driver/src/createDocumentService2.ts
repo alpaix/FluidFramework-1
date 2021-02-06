@@ -29,6 +29,7 @@ export const createDocumentService2 = (
     disableCache = false,
     historianApi = true,
     logger: ITelemetryLogger,
+    headersProvider,
     credentials?: ICredentials): IDocumentService => new DocumentService2(
         resolvedUrl,
         ordererUrl,
@@ -40,5 +41,6 @@ export const createDocumentService2 = (
         credentials,
         logger,
         tokenProvider,
+        headersProvider,
         tenantId,
         documentId);

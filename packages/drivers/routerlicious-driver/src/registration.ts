@@ -28,6 +28,7 @@ export function createDocumentService(
     errorTracking: IErrorTrackingService = new DefaultErrorTracking(),
     disableCache = false,
     historianApi = true,
+    headersProvider,
     credentials?,
     seedData?: IGitCache,
     logger?: ITelemetryLogger): IDocumentService {
@@ -43,6 +44,7 @@ export function createDocumentService(
         seedData,
         logger,
         tokenProvider,
+        headersProvider,
         tenantId,
         documentId);
 
