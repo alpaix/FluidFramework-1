@@ -17,6 +17,7 @@ import { readAndParse } from "@fluidframework/driver-utils";
 import { ITelemetryLogger } from "@fluidframework/common-definitions";
 import { ITokenProvider } from "./tokens";
 import { DocumentStorageService } from "./documentStorageService";
+import { ICustomHeadersProvider } from "@fluidframework/server-services-client";
 
 /**
  * Storage service limited to only being able to fetch documents for a specific document
@@ -55,6 +56,7 @@ export class DeltaStorageService implements IDeltaStorageService {
     constructor(
         private readonly url: string,
         private readonly tokenProvider: ITokenProvider,
+        private readonly headersProvider: ICustomHeadersProvider,
         private readonly logger: ITelemetryLogger | undefined) {
     }
 
@@ -65,7 +67,7 @@ export class DeltaStorageService implements IDeltaStorageService {
         to: number): Promise<IDeltasFetchResult> {
         const query = querystring.stringify({ from, to });
 
-        const headers: OutgoingHttpHeaders = {
+        let headers: OutgoingHttpHeaders = {
             "x-correlation-id": uuid.v4(),
         };
 
@@ -73,9 +75,14 @@ export class DeltaStorageService implements IDeltaStorageService {
             tenantId,
             id,
         );
+        const customHeaders =  await this.headersProvider.fetchCustomHeaders();
 
         if (storageToken) {
             headers.Authorization = `Basic ${storageToken.jwt}`;
+        }
+
+        if(customHeaders) {
+            headers = { ...headers, ...customHeaders.headers };
         }
 
         const ops = await Axios.get<ISequencedDocumentMessage[]>(
