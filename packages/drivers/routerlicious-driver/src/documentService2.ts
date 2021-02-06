@@ -6,7 +6,7 @@
 import { ITelemetryLogger } from "@fluidframework/common-definitions";
 import { IDocumentDeltaConnection, IResolvedUrl } from "@fluidframework/driver-definitions";
 import * as api from "@fluidframework/protocol-definitions";
-import { ICredentials } from "@fluidframework/server-services-client";
+import { ICredentials, ICustomHeadersProvider } from "@fluidframework/server-services-client";
 import { DocumentService } from "./documentService";
 import { ITokenProvider } from "./tokens";
 import { WSDeltaConnection } from "./wsDeltaConnection";
@@ -26,6 +26,7 @@ export class DocumentService2 extends DocumentService {
         directCredentials: ICredentials | undefined,
         logger: ITelemetryLogger,
         tokenProvider: ITokenProvider,
+        headersProvider:ICustomHeadersProvider,
         tenantId: string,
         documentId: string) {
         super(
@@ -40,6 +41,7 @@ export class DocumentService2 extends DocumentService {
             undefined,
             logger,
             tokenProvider,
+            headersProvider,
             tenantId,
             documentId);
     }

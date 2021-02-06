@@ -34,6 +34,7 @@ export class Historian implements IHistorian {
         public endpoint: string,
         private readonly historianApi: boolean,
         private readonly disableCache: boolean,
+        customHeaders: { [key: string]: string },
         credentials?: ICredentials,
         getCorrelationId?: () => string | undefined) {
         const queryString: { token?; disableCache?} = {};
@@ -48,11 +49,12 @@ export class Historian implements IHistorian {
             queryString.token = fromUtf8ToBase64(`${credentials.user}`);
         }
 
-        const headers = credentials ?
+        let headers = credentials ?
             {
                 Authorization: `Basic ${fromUtf8ToBase64(`${credentials.user}:${credentials.password}`)}`,
             } :
             {};
+            headers = { ...headers, ...customHeaders };
         if (getCorrelationId) {
             headers["x-correlation-id"] = getCorrelationId() || uuid.v4();
         }
