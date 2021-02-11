@@ -121,6 +121,7 @@ export class DocumentService implements api.IDocumentService {
             this.tenantId,
             this.documentId,
         );
+        const customHeaders = await this.headersProvider.fetchCustomHeaders();       
         return R11sDocumentDeltaConnection.create(
             this.tenantId,
             this.documentId,
