@@ -66,14 +66,20 @@ export class R11sDocumentDeltaConnection extends DocumentDeltaConnection impleme
         io: SocketIOClientStatic,
         client: IClient,
         url: string,
+        additionalQueryParams: { [key: string]: string } = {},       
         timeoutMs = 20000): Promise<IDocumentDeltaConnection> {
+
+        let queryParams = {
+            documentId: id,
+            tenantId
+         };
+        if (additionalQueryParams) {
+            queryParams = { ...queryParams, ...additionalQueryParams }
+        }
         const socket = io(
             url,
             {
-                query: {
-                    documentId: id,
-                    tenantId,
-                },
+                query: queryParams,
                 path:"/api/proxy/collab/socket.io",
                 reconnection: false,
                 transports: ["websocket"],

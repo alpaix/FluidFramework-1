@@ -66,7 +66,11 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
             tenantId,
             id,
         );
-        const headers =  await this.headersProvider.fetchCustomHeaders();
+        let headers = {
+            Authorization: `Basic ${token.jwt}`,
+        };
+        const customHeaders = await this.headersProvider.fetchCustomHeaders();
+        headers = { ...headers, ...customHeaders };
         await Axios.post(
             `${resolvedUrl.endpoints.ordererUrl}/api/proxy/collab/documents/${tenantId}`,
             {
@@ -76,11 +80,9 @@ export class RouterliciousDocumentServiceFactory implements IDocumentServiceFact
                 values: quorumValues,
             },
             {
-                headers: {
-                    Authorization: `Basic ${token.jwt}`,
-                },
-            },
-            {headers:headers});
+                headers:headers,
+            }
+        );
         return this.createDocumentService(resolvedUrl, logger);
     }
 
