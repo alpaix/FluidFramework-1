@@ -90,7 +90,7 @@ export interface ICodeAllowList {
 
 // @public
 export interface ICodeLoader extends Partial<IProvideFluidCodeDetailsComparer> {
-    load(source: IFluidCodeDetails): Promise<IFluidModule>;
+    load(source: IFluidCodeDetails): Promise<IFluidModule | IFluidModuleWithDetails>;
 }
 
 // @public
@@ -328,6 +328,14 @@ export interface IFluidCodeResolver {
 export interface IFluidModule {
     // (undocumented)
     fluidExport: IFluidObject & Partial<Readonly<IProvideFluidCodeDetailsComparer>>;
+}
+
+// @public (undocumented)
+export interface IFluidModuleWithDetails {
+    // (undocumented)
+    details: IFluidCodeDetails;
+    // (undocumented)
+    module: IFluidModule;
 }
 
 // @public (undocumented)

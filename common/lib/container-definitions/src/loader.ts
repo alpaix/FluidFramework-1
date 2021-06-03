@@ -25,6 +25,11 @@ import { ICriticalContainerError, ContainerWarning } from "./error";
 import { IFluidModule } from "./fluidModule";
 import { AttachState } from "./runtime";
 
+export interface IFluidModuleWithDetails {
+    module: IFluidModule;
+    details: IFluidCodeDetails;
+}
+
 /**
  * Code loading interface
  */
@@ -32,7 +37,7 @@ export interface ICodeLoader extends Partial<IProvideFluidCodeDetailsComparer> {
     /**
      * Loads the package specified by code details and returns a promise to its entry point exports.
      */
-    load(source: IFluidCodeDetails): Promise<IFluidModule>;
+    load(source: IFluidCodeDetails): Promise<IFluidModule | IFluidModuleWithDetails>;
 }
 
 /**

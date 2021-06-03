@@ -22,8 +22,8 @@ import {
     ICriticalContainerError,
     ContainerWarning,
     AttachState,
-    IFluidModule,
     ILoaderOptions,
+    IFluidModuleWithDetails,
 } from "@fluidframework/container-definitions";
 import { IDocumentStorageService } from "@fluidframework/driver-definitions";
 import {
@@ -157,12 +157,16 @@ export class ContainerContext implements IContainerContext {
         return this._disposed;
     }
 
-    private readonly fluidModuleP = new LazyPromise<IFluidModule>(async () => {
-        const fluidModule = await PerformanceEvent.timedExecAsync(this.logger, { eventName: "CodeLoad" },
+    private readonly fluidModuleP = new LazyPromise<IFluidModuleWithDetails>(async () => {
+        const loadCodeResult = await PerformanceEvent.timedExecAsync(this.logger, { eventName: "CodeLoad" },
             async () => this.codeLoader.load(this.codeDetails),
         );
 
-        return fluidModule;
+        const hasDetails = (result): result is IFluidModuleWithDetails => {
+            return typeof result === "object" && "details" in result;
+        };
+
+        return hasDetails(loadCodeResult) ? loadCodeResult : { module: loadCodeResult, details: this.codeDetails };
     });
 
     constructor(
@@ -264,7 +268,8 @@ export class ContainerContext implements IContainerContext {
             comparers.push(maybeCompareCodeLoader.IFluidCodeDetailsComparer);
         }
 
-        const maybeCompareExport = (await this.fluidModuleP).fluidExport;
+        const moduleWithDetails = await this.fluidModuleP;
+        const maybeCompareExport = moduleWithDetails.module.fluidExport;
         if (maybeCompareExport?.IFluidCodeDetailsComparer !== undefined) {
             comparers.push(maybeCompareExport.IFluidCodeDetailsComparer);
         }
@@ -279,7 +284,7 @@ export class ContainerContext implements IContainerContext {
         }
 
         for (const comparer of comparers) {
-            const satisfies = await comparer.satisfies(this.codeDetails, constraintCodeDetails);
+            const satisfies = await comparer.satisfies(moduleWithDetails.details, constraintCodeDetails);
             if (satisfies === false) {
                 return false;
             }
@@ -288,7 +293,7 @@ export class ContainerContext implements IContainerContext {
     }
 
     private async load() {
-        const maybeFactory = (await this.fluidModuleP).fluidExport.IRuntimeFactory;
+        const maybeFactory = (await this.fluidModuleP).module.fluidExport.IRuntimeFactory;
         if (maybeFactory === undefined) {
             throw new Error(PackageNotFactoryError);
         }
