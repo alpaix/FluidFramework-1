@@ -14,12 +14,6 @@ Delta:4`;
     return inventoryData;
 };
 
-export const writeData = async (data: string) => {
-    // Write to persisted storage
-    console.log("Wrote data:");
-    console.log(data);
-};
-
 function parseStringData(stringData: string) {
     const itemStrings = stringData.split("\n");
     return itemStrings.map((itemString) => {
