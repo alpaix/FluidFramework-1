@@ -7,12 +7,13 @@ import React, { useEffect, useState } from "react";
 
 import type { IContainerKillBit, IInventoryList } from "./interfaces";
 import { InventoryListView } from "./inventoryView";
+import { ActionType } from "./state";
 
 export interface IContainerViewProps {
     inventoryList: IInventoryList;
     containerKillBit: IContainerKillBit;
     inventoryData: string | undefined;
-    dispatch: React.Dispatch<any>;
+    dispatch: React.Dispatch<ActionType>;
 }
 
 export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerViewProps) => {
@@ -23,7 +24,7 @@ export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerVi
         dispatch,
     } = props;
 
-    const [dead, setDead] = useState<boolean>(containerKillBit.dead);
+    const [isDead, setDead] = useState<boolean>(containerKillBit.dead);
     const [sessionEnding, setSessionEnding] = useState<boolean>(containerKillBit.markedForDestruction);
 
     useEffect(() => {
@@ -49,10 +50,6 @@ export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerVi
         };
     }, [containerKillBit]);
 
-    if (dead) {
-        return <h1>The session has ended.</h1>;
-    }
-
     const endSessionButtonClickHandler = () => {
         containerKillBit.markForDestruction().catch(console.error);
     };
@@ -62,17 +59,25 @@ export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerVi
     };
 
     return (
-        <div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "baseline", gap: "10px", padding: "10px" }}>
+            {isDead && <h1>The session has ended.</h1>}
             {sessionEnding && <h1>The session is ending...</h1>}
-            <InventoryListView inventoryList={inventoryList} disabled={sessionEnding} />
-            <button onClick={() => dispatch({ type: "saveAndEndSession" })}>Save and end session</button><br />
-            <button onClick={endSessionButtonClickHandler}>1. End collaboration session</button>
-            <button onClick={() => dispatch({ type: "writeToExternalStorage" })}>2. Save</button>
-            <button onClick={setDeadButtonClickHandler}>3. Set dead</button>
+            {
+                (isDead === false) &&
+                <>
+                    <InventoryListView inventoryList={inventoryList} disabled={sessionEnding} />
+                    <button onClick={() => dispatch({ type: "saveAndEndSession" })}>Save and end session</button>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                        <button onClick={endSessionButtonClickHandler}>1. End collaboration session</button>
+                        <button onClick={() => dispatch({ type: "writeToExternalStorage" })}>2. Save</button>
+                        <button onClick={setDeadButtonClickHandler}>3. Set dead</button>
+                    </div>
+                </>
+            }
             {
                 (inventoryData !== undefined) &&
                 <>
-                    <div>Data out:</div>
+                    <p>Saved inventory data:</p>
                     <textarea value={inventoryData} rows={5} readOnly></textarea>
                     <button onClick={() => dispatch({ type: "createNewContainer", payload: { inventoryData } })}>
                         Create new container
