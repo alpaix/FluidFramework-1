@@ -5,14 +5,14 @@
 
 import React, { useEffect, useState } from "react";
 
-import type { IContainerKillBit, IInventoryList } from "./interfaces";
+import type { IContainerKillBit, IInventoryList } from "../interfaces";
+import { ActionType } from "../state";
 import { InventoryListView } from "./inventoryView";
-import { ActionType } from "./state";
 
 export interface IContainerViewProps {
     inventoryList: IInventoryList;
     containerKillBit: IContainerKillBit;
-    inventoryData: string | undefined;
+    // inventoryData: string | undefined;
     dispatch: React.Dispatch<ActionType>;
 }
 
@@ -20,12 +20,13 @@ export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerVi
     const {
         inventoryList,
         containerKillBit,
-        inventoryData,
         dispatch,
     } = props;
 
     const [isDead, setDead] = useState<boolean>(containerKillBit.dead);
     const [sessionEnding, setSessionEnding] = useState<boolean>(containerKillBit.markedForDestruction);
+    const [isBusy, setBusy] = useState<boolean>(false);
+    const [inventoryData] = useState<string>();
 
     useEffect(() => {
         const deadHandler = () => {
@@ -51,25 +52,43 @@ export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerVi
     }, [containerKillBit]);
 
     const endSessionButtonClickHandler = () => {
-        containerKillBit.markForDestruction().catch(console.error);
+        setBusy(true);
+        containerKillBit.markForDestruction()
+            .then(() => setBusy(false))
+            .catch(console.error);
     };
 
     const setDeadButtonClickHandler = () => {
-        containerKillBit.setDead().catch(console.error);
+        setBusy(true);
+        containerKillBit.setDead()
+            .then(() => setBusy(false))
+            .catch(console.error);
     };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "baseline", gap: "10px", padding: "10px" }}>
-            {isDead && <h1>The session has ended.</h1>}
-            {sessionEnding && <h1>The session is ending...</h1>}
+            {isDead && <h1>The session has ended</h1>}
             {
                 (isDead === false) &&
                 <>
+                    {sessionEnding && <h1>The session is ending...</h1>}
+                    {(isBusy === false) &&
+                        <div style={{ position: "relative" }}>
+                            <div className="spinner">
+                                <p>Working...</p>
+                            </div>
+                        </div>
+                    }
                     <InventoryListView inventoryList={inventoryList} disabled={sessionEnding} />
-                    <button onClick={() => dispatch({ type: "saveAndEndSession" })}>Save and end session</button>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                        <button onClick={() => dispatch({ type: "save-and-end-session" })}>Save and end session</button>
+                        <button onClick={() => dispatch({ type: "migrate-container", payload: { inventoryData } })}>
+                            Migrate to new container
+                        </button>
+                    </div>
                     <div style={{ display: "flex", gap: "10px" }}>
                         <button onClick={endSessionButtonClickHandler}>1. End collaboration session</button>
-                        <button onClick={() => dispatch({ type: "writeToExternalStorage" })}>2. Save</button>
+                        <button onClick={() => dispatch({ type: "write-to-external-storage" })}>2. Save</button>
                         <button onClick={setDeadButtonClickHandler}>3. Set dead</button>
                     </div>
                 </>
@@ -79,9 +98,6 @@ export const ContainerView: React.FC<IContainerViewProps> = (props: IContainerVi
                 <>
                     <p>Saved inventory data:</p>
                     <textarea value={inventoryData} rows={5} readOnly></textarea>
-                    <button onClick={() => dispatch({ type: "createNewContainer", payload: { inventoryData } })}>
-                        Create new container
-                    </button>
                 </>
             }
         </div >

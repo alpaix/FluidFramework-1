@@ -9,7 +9,7 @@ import { DataObject, DataObjectFactory } from "@fluidframework/aqueduct";
 import { ConsensusRegisterCollection } from "@fluidframework/register-collection";
 // import { IFluidHandle } from "@fluidframework/core-interfaces";
 
-import type { IContainerKillBit } from "./interfaces";
+import type { IContainerKillBit } from "../interfaces";
 
 const quorumKey = "quorum";
 const crcKey = "crc";
@@ -69,6 +69,7 @@ export class ContainerKillBit extends DataObject implements IContainerKillBit {
         // marking was the one that actually wrote the flag.
         return new Promise<void>((resolve, reject) => {
             const acceptedListener = (key: string) => {
+                console.log("accepted", key);
                 if (key === markedForDestructionKey) {
                     resolve();
                     this.quorum.off("accepted", acceptedListener);
@@ -100,6 +101,7 @@ export class ContainerKillBit extends DataObject implements IContainerKillBit {
         // TODO: Update if/when .set() returns a promise.
         const initialSetP = new Promise<void>((resolve) => {
             const watchForInitialSet = (key: string) => {
+                console.log("accepted", key);
                 if (key === markedForDestructionKey) {
                     resolve();
                     quorum.off("accepted", watchForInitialSet);
@@ -120,15 +122,21 @@ export class ContainerKillBit extends DataObject implements IContainerKillBit {
         this._crc = await crcHandle.get();
 
         this.quorum.on("accepted", (key: string) => {
+            console.log("accepted", key);
             if (key === markedForDestructionKey) {
                 this.emit("markedForDestruction");
             }
         });
 
         this.crc.on("atomicChanged", (key) => {
+            console.log("atomicChanged", key);
             if (key === deadKey) {
                 this.emit("dead");
             }
+        });
+
+        this.crc.on("versionChanged", (key) => {
+            console.log("versionChanged", key);
         });
 
         const taskManagerHandle = this.root.get(taskManagerKey);

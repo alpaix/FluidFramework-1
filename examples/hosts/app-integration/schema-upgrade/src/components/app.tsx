@@ -6,11 +6,13 @@
 import React from "react";
 
 import { ContainerView } from "./containerView";
-import { ActionType, middleware, reducer } from "./state";
+import { ActionType, middleware, reducer } from "../state";
 
 export const App: React.FC = () => {
     const [appState, dispatch] = React.useReducer(reducer, {});
-    const wrappedDispatch = (action: ActionType) => middleware(action, appState, dispatch);
+    const wrappedDispatch = (action: ActionType) => {
+        middleware(action, appState, dispatch).catch(console.error);
+    }
 
     React.useEffect(() => {
         // In interacting with the service, we need to be explicit about whether we're creating a new container vs.
@@ -23,10 +25,10 @@ export const App: React.FC = () => {
 
         // These policy choices are arbitrary for demo purposes, and can be changed however you'd like.
         if (location.hash.length === 0) {
-            wrappedDispatch({ type: "createNewContainer" });
+            wrappedDispatch({ type: "create-container" });
         } else {
             wrappedDispatch({
-                type: "loadExistingContainer",
+                type: "load-container",
                 payload: {
                     containerId: location.hash.substring(1),
                 },
@@ -48,7 +50,6 @@ export const App: React.FC = () => {
             <ContainerView
                 inventoryList={appState.inventoryList}
                 containerKillBit={appState.containerKillBit}
-                inventoryData={appState.inventoryData}
                 dispatch={wrappedDispatch}
             />
         }

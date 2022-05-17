@@ -1,14 +1,36 @@
 <!-- Copyright (c) Microsoft Corporation and contributors. All rights reserved. -->
 <!-- Licensed under the MIT License. -->
 
-<!doctype html>
-<html lang="en" style="height: 100%;">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test application</title>
-</head>
-<body style="margin: 0; height: 100%;">
-    <div id="content" style="min-height: 100%;"></div>
-</body>
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Data Migration Demo Application</title>
+        <style>
+            @keyframes spinner {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .spinner:before {
+                content: "";
+                box-sizing: border-box;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 20px;
+                height: 20px;
+                margin-top: -10px;
+                margin-left: -10px;
+                border-radius: 50%;
+                border: 2px solid #ccc;
+                border-top-color: #000;
+                animation: spinner 0.6s linear infinite;
+            }
+        </style>
+    </head>
+    <body style="margin: 0; height: 100%">
+        <div id="content" style="min-height: 100%"></div>
+    </body>
 </html>
